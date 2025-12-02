@@ -1,0 +1,20 @@
+// Задание 1: Сумма или произведение
+digraph {
+	rankdir=TB
+	start [label="Начало" shape=ellipse]
+	input [label="Ввод x, y" shape=parallelogram]
+	condition [label="x > 0 И y > 0?" shape=diamond]
+	sum [label="S = x + y" shape=rectangle]
+	prod [label="P = x * y" shape=rectangle]
+	output1 [label="Вывод S" shape=parallelogram]
+	output2 [label="Вывод P" shape=parallelogram]
+	end [label="Конец" shape=ellipse]
+	start -> input
+	input -> condition
+	condition -> sum [label="Да"]
+	condition -> prod [label="Нет"]
+	sum -> output1
+	prod -> output2
+	output1 -> end
+	output2 -> end
+}

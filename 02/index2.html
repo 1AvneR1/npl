@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Нотариальная контора - База данных</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Анимированные частицы на фоне */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(26, 188, 156, 0.1);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .lang-btn {
+            background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: center;
+            box-shadow: 0 6px 20px rgba(26, 188, 156, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lang-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+
+        .lang-btn:hover {
+            transform: scale(1.1) rotate(2deg);
+            box-shadow: 
+                0 10px 30px rgba(26, 188, 156, 0.6),
+                0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .lang-btn:hover::before {
+            left: 100%;
+        }
+
+        nav {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            padding: 0.75rem;
+            position: sticky;
+            top: 85px;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            animation: slideIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s both;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-item {
+            color: white;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            text-decoration: none;
+            position: relative;
+            display: inline-block;
+            transform-origin: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(26, 188, 156, 0.4), rgba(52, 152, 219, 0.4));
+            border-radius: 8px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .nav-item:hover {
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 
+                0 12px 25px rgba(26, 188, 156, 0.4),
+                0 0 0 2px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            z-index: 101;
+        }
+
+        .nav-item:hover::before {
+            opacity: 1;
+        }
+
+        /* Выпадающие меню только для документов */
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            min-width: 240px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            z-index: 1000;
+            margin-top: 8px;
+            transform-origin: top center;
+            animation: dropdownAppear 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        @keyframes dropdownAppear {
+            from {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95) rotateX(-5deg);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1) rotateX(0);
+            }
+        }
+
+        #nav-documents-container:hover .dropdown {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(238, 238, 238, 0.6);
+            color: #2c3e50;
+            text-decoration: none;
+            display: block;
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: left center;
+            position: relative;
+        }
+
+        .dropdown-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 5px;
+            background: linear-gradient(to bottom, #1abc9c, #3498db);
+            transform: scaleY(0);
+            transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .dropdown-item:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            transform: scale(1.03) translateX(5px);
+            padding-left: 1.75rem;
+            font-weight: bold;
+            color: #2c3e50;
+            box-shadow: inset 0 0 20px rgba(26, 188, 156, 0.1);
+        }
+
+        .dropdown-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2.5rem auto;
+            padding: 0 1.5rem;
+            animation: containerAppear 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both;
+            position: relative;
+            min-height: 60vh;
+        }
+
+        @keyframes containerAppear {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Стили для страниц с плавными переходами */
+        .page {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: pageExit 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            perspective: 1000px;
+        }
+
+        @keyframes pageExit {
+            from {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.98);
+                filter: blur(2px);
+                display: none;
+            }
+        }
+
+        .active-page {
+            display: block;
+            position: relative;
+            animation: pageEnter 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes pageEnter {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.96);
+                filter: blur(4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        /* Особые стили для главной страницы */
+        .main-page .section {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 249, 250, 0.95) 100%);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.15),
+                0 0 100px rgba(26, 188, 156, 0.15),
+                0 0 150px rgba(52, 152, 219, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-page .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(255, 255, 255, 0.1) 50%, 
+                transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .main-page .section:hover {
+            transform: translateY(-10px) scale(1.01);
+            box-shadow: 
+                0 30px 70px rgba(0, 0, 0, 0.2),
+                0 0 150px rgba(26, 188, 156, 0.25),
+                0 0 200px rgba(52, 152, 219, 0.15),
+                0 0 250px rgba(155, 89, 182, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .main-page .section:hover::before {
+            transform: translateX(100%);
+        }
+
+        .main-page .section::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #1abc9c, #3498db, #9b59b6, #e74c3c);
+            border-radius: 22px;
+            z-index: -1;
+            animation: borderGlow 4s linear infinite;
+            opacity: 0.5;
+            filter: blur(10px);
+        }
+
+        @keyframes borderGlow {
+            0%, 100% {
+                filter: blur(10px) hue-rotate(0deg);
+            }
+            50% {
+                filter: blur(15px) hue-rotate(180deg);
+            }
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 20px 45px rgba(0, 0, 0, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after, h2::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #1abc9c, #3498db);
+            border-radius: 2px;
+            transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        h1:hover, h2:hover {
+            transform: translateX(8px);
+            color: #1abc9c;
+        }
+
+        h1:hover::after, h2:hover::after {
+            width: 100%;
+        }
+
+        /* Карточки статистики на главной */
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 249, 250, 0.9) 100%);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 30% 30%, rgba(26, 188, 156, 0.15) 0%, transparent 50%),
+                       radial-gradient(circle at 70% 70%, rgba(52, 152, 219, 0.15) 0%, transparent 50%);
+            opacity: 0;
+            transition: opacity 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            box-shadow: 
+                0 35px 70px rgba(0, 0, 0, 0.2),
+                0 0 100px rgba(26, 188, 156, 0.2),
+                0 0 150px rgba(52, 152, 219, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Цветные тени для карточек */
+        .stat-card:nth-child(1):hover {
+            box-shadow: 
+                0 35px 70px rgba(0, 0, 0, 0.2),
+                0 0 100px rgba(26, 188, 156, 0.3),
+                0 0 150px rgba(26, 188, 156, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .stat-card:nth-child(2):hover {
+            box-shadow: 
+                0 35px 70px rgba(0, 0, 0, 0.2),
+                0 0 100px rgba(155, 89, 182, 0.3),
+                0 0 150px rgba(155, 89, 182, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .stat-card:nth-child(3):hover {
+            box-shadow: 
+                0 35px 70px rgba(0, 0, 0, 0.2),
+                0 0 100px rgba(231, 76, 60, 0.3),
+                0 0 150px rgba(231, 76, 60, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        /* Эффект неоновой подсветки для заголовков на главной */
+        .main-page h2 {
+            position: relative;
+            text-shadow: 
+                0 0 10px rgba(26, 188, 156, 0.3),
+                0 0 20px rgba(26, 188, 156, 0.2),
+                0 0 30px rgba(26, 188, 156, 0.1);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from {
+                text-shadow: 
+                    0 0 10px rgba(26, 188, 156, 0.3),
+                    0 0 20px rgba(26, 188, 156, 0.2),
+                    0 0 30px rgba(26, 188, 156, 0.1);
+            }
+            to {
+                text-shadow: 
+                    0 0 15px rgba(52, 152, 219, 0.4),
+                    0 0 25px rgba(52, 152, 219, 0.3),
+                    0 0 35px rgba(52, 152, 219, 0.2);
+            }
+        }
+
+        /* Кнопки */
+        button {
+            background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            transform-origin: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(26, 188, 156, 0.4);
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: 0.5s;
+        }
+
+        button:hover {
+            transform: scale(1.08) translateY(-2px);
+            box-shadow: 
+                0 15px 35px rgba(26, 188, 156, 0.6),
+                0 0 20px rgba(255, 255, 255, 0.3);
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        /* Формы */
+        .form-group {
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: formGroupAppear 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes formGroupAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.2s; }
+        .form-group:nth-child(3) { animation-delay: 0.3s; }
+        .form-group:nth-child(4) { animation-delay: 0.4s; }
+        .form-group:nth-child(5) { animation-delay: 0.5s; }
+        .form-group:nth-child(6) { animation-delay: 0.6s; }
+        .form-group:nth-child(7) { animation-delay: 0.7s; }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #1abc9c;
+            box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
+            transform: translateY(-2px);
+        }
+
+        footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            text-align: center;
+            padding: 2.5rem;
+            margin-top: 4rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #1abc9c, #3498db, #9b59b6);
+            animation: gradientMove 3s ease infinite;
+        }
+
+        @keyframes gradientMove {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* Анимации появления элементов с задержкой */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+
+        /* Таблицы */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        table:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        th, td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(221, 221, 221, 0.5);
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        tr {
+            opacity: 0;
+            animation: rowAppear 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes rowAppear {
+            to {
+                opacity: 1;
+            }
+        }
+
+        tr:nth-child(1) { animation-delay: 0.05s; }
+        tr:nth-child(2) { animation-delay: 0.1s; }
+        tr:nth-child(3) { animation-delay: 0.15s; }
+        tr:nth-child(4) { animation-delay: 0.2s; }
+        tr:nth-child(5) { animation-delay: 0.25s; }
+        tr:nth-child(6) { animation-delay: 0.3s; }
+        tr:nth-child(7) { animation-delay: 0.35s; }
+        tr:nth-child(8) { animation-delay: 0.4s; }
+
+        tr:hover {
+            background: linear-gradient(135deg, #f9f9f9 0%, #f0f8ff 100%);
+            transform: scale(1.005);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Плавный скролл */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .dropdown {
+                position: static;
+                width: 100%;
+            }
+            
+            .main-page .section {
+                padding: 1.5rem;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+            
+            .stat-card:hover {
+                transform: translateY(-10px) scale(1.02);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Анимированные частицы на фоне -->
+    <div class="particles" id="particles"></div>
+
+    <header>
+        <div>
+            <h1 id="main-title">Нотариальная контора "Правовой гарант"</h1>
+            <p id="main-subtitle">База данных клиентов, услуг и сделок</p>
+        </div>
+        <button class="lang-btn" id="lang-toggle">English</button>
+    </header>
+
+    <nav>
+        <a href="#" class="nav-item" id="nav-main" data-page="main-page">Главная</a>
+        <a href="#" class="nav-item" id="nav-clients" data-page="clients-page">Клиенты</a>
+        <a href="#" class="nav-item" id="nav-services" data-page="services-page">Услуги</a>
+        <a href="#" class="nav-item" id="nav-deals" data-page="deals-page">Сделки</a>
+        <a href="#" class="nav-item" id="nav-request" data-page="request-page">Оформить обращение</a>
+        
+        <div class="nav-item" id="nav-documents-container">
+            Получить документ
+            <div class="dropdown" id="documents-dropdown">
+                <a href="#" class="dropdown-item" data-page="document-page" data-certificate="deal">Документ по сделке</a>
+                <a href="#" class="dropdown-item" data-page="document-page" data-certificate="client">Справка о клиенте</a>
+                <a href="#" class="dropdown-item" data-page="document-page" data-certificate="services">Перечень услуг</a>
+                <a href="#" class="dropdown-item" data-page="document-page" data-certificate="financial">Финансовая справка</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Главная страница -->
+        <div id="main-page" class="page active-page main-page">
+            <section class="section fade-in">
+                <h2 id="about-title">О нотариальной конторе</h2>
+                <p id="about-text" class="fade-in delay-1">Наша нотариальная контора предоставляет полный спектр нотариальных услуг для физических и юридических лиц. Мы гарантируем профессиональное выполнение всех нотариальных действий в соответствии с законодательством Российской Федерации.</p>
+                <button style="margin-top: 2rem;" class="fade-in delay-2">Узнать больше</button>
+            </section>
+
+            <section class="section fade-in delay-1">
+                <h2>Статистика</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2.5rem; margin-top: 2rem;">
+                    <div class="stat-card fade-in delay-1">
+                        <h3 style="color: #2c3e50;">Клиенты</h3>
+                        <p style="font-size: 3.5rem; font-weight: bold; color: #1abc9c; margin: 1.5rem 0; text-shadow: 0 0 20px rgba(26, 188, 156, 0.3);" id="clients-count">10</p>
+                        <p style="color: #7f8c8d; font-size: 1.1rem;">организаций в базе данных</p>
+                        <button class="fade-in delay-2" style="margin-top: 2rem; background: linear-gradient(135deg, #1abc9c, #16a085);" data-page="clients-page">Просмотреть</button>
+                    </div>
+                    <div class="stat-card fade-in delay-2">
+                        <h3 style="color: #2c3e50;">Услуги</h3>
+                        <p style="font-size: 3.5rem; font-weight: bold; color: #9b59b6; margin: 1.5rem 0; text-shadow: 0 0 20px rgba(155, 89, 182, 0.3);" id="services-count">10</p>
+                        <p style="color: #7f8c8d; font-size: 1.1rem;">видов нотариальных услуг</p>
+                        <button class="fade-in delay-3" style="margin-top: 2rem; background: linear-gradient(135deg, #9b59b6, #8e44ad);" data-page="services-page">Просмотреть</button>
+                    </div>
+                    <div class="stat-card fade-in delay-3">
+                        <h3 style="color: #2c3e50;">Сделки</h3>
+                        <p style="font-size: 3.5rem; font-weight: bold; color: #e74c3c; margin: 1.5rem 0; text-shadow: 0 0 20px rgba(231, 76, 60, 0.3);" id="deals-count">10</p>
+                        <p style="color: #7f8c8d; font-size: 1.1rem;">завершенных сделок</p>
+                        <button class="fade-in delay-4" style="margin-top: 2rem; background: linear-gradient(135deg, #e74c3c, #c0392b);" data-page="deals-page">Просмотреть</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section fade-in delay-2">
+                <h2>Наши преимущества</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    <div class="stat-card fade-in delay-1" style="padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⚖️</div>
+                        <h4 style="color: #2c3e50; margin-bottom: 1rem;">Профессионализм</h4>
+                        <p style="color: #7f8c8d;">Опытные нотариусы с многолетним стажем работы</p>
+                    </div>
+                    <div class="stat-card fade-in delay-2" style="padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">⏱️</div>
+                        <h4 style="color: #2c3e50; margin-bottom: 1rem;">Оперативность</h4>
+                        <p style="color: #7f8c8d;">Быстрое оформление документов в срок</p>
+                    </div>
+                    <div class="stat-card fade-in delay-3" style="padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                        <h4 style="color: #2c3e50; margin-bottom: 1rem;">Конфиденциальность</h4>
+                        <p style="color: #7f8c8d;">Полная защита ваших персональных данных</p>
+                    </div>
+                    <div class="stat-card fade-in delay-4" style="padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📞</div>
+                        <h4 style="color: #2c3e50; margin-bottom: 1rem;">Поддержка</h4>
+                        <p style="color: #7f8c8d;">Круглосуточная клиентская поддержка</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Страница клиентов -->
+        <div id="clients-page" class="page">
+            <section class="section fade-in">
+                <h2 id="clients-title">Клиенты</h2>
+                <button style="margin-bottom: 1.5rem;" onclick="addNewClient()">+ Добавить клиента</button>
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="client-code">Код клиента</th>
+                            <th id="client-name">Название организации</th>
+                            <th id="client-activity">Вид деятельности</th>
+                            <th id="client-address">Адрес</th>
+                            <th id="client-phone">Телефон</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clients-table-body">
+                        <!-- Данные будут заполнены через JavaScript -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <!-- Страница услуг -->
+        <div id="services-page" class="page">
+            <section class="section fade-in">
+                <h2 id="services-title">Услуги</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="service-code">Код услуги</th>
+                            <th id="service-name">Название</th>
+                            <th id="service-description">Описание</th>
+                            <th>Стоимость (руб.)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="services-table-body">
+                        <!-- Данные будут заполнены через JavaScript -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <!-- Страница сделок -->
+        <div id="deals-page" class="page">
+            <section class="section fade-in">
+                <h2 id="deals-title">Сделки</h2>
+                <div style="margin-bottom: 2rem;">
+                    <button onclick="addNewDeal()">+ Добавить сделку</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="deal-code">Код сделки</th>
+                            <th id="deal-client-code">Код клиента</th>
+                            <th id="deal-service-code">Код услуги</th>
+                            <th id="deal-amount">Сумма (руб.)</th>
+                            <th id="deal-commission">Комиссия (руб.)</th>
+                            <th id="deal-description">Описание</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deals-table-body">
+                        <!-- Данные будут заполнены через JavaScript -->
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <!-- Страница оформления обращения -->
+        <div id="request-page" class="page">
+            <section class="section fade-in">
+                <h2 id="request-title">Оформление обращения в нотариальную контору</h2>
+                <form id="request-form">
+                    <div class="form-group">
+                        <label for="client-type">Тип клиента:</label>
+                        <select id="client-type" required>
+                            <option value="">Выберите тип</option>
+                            <option value="Физическое лицо">Физическое лицо</option>
+                            <option value="Юридическое лицо">Юридическое лицо</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="full-name">ФИО / Название организации:</label>
+                        <input type="text" id="full-name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Телефон:</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="service-type">Тип услуги:</label>
+                        <select id="service-type" required>
+                            <option value="">Выберите услугу</option>
+                            <option value="Удостоверение договоров">Удостоверение договоров</option>
+                            <option value="Свидетельствование копий">Свидетельствование верности копий</option>
+                            <option value="Составление завещаний">Составление завещаний</option>
+                            <option value="Удостоверение доверенностей">Удостоверение доверенностей</option>
+                            <option value="Депозитное хранение">Нотариальное депозитное хранение</option>
+                            <option value="Консультация">Консультация</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="request-description">Описание обращения:</label>
+                        <textarea id="request-description" rows="4" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="request-date">Желаемая дата:</label>
+                        <input type="date" id="request-date" required>
+                    </div>
+
+                    <button type="submit" class="fade-in delay-5">Отправить обращение</button>
+                </form>
+            </section>
+        </div>
+
+        <!-- Страница получения документа -->
+        <div id="document-page" class="page">
+            <section class="section fade-in">
+                <h2 id="document-title">Получение документов и справок</h2>
+                <div class="form-group">
+                    <label for="certificate-type">Тип справки:</label>
+                    <select id="certificate-type">
+                        <option value="deal">Документ по сделке</option>
+                        <option value="client">Справка о клиенте</option>
+                        <option value="services">Перечень услуг</option>
+                        <option value="financial">Финансовая справка</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="document-code">Код (для сделки или клиента):</label>
+                    <input type="text" id="document-code" placeholder="Введите код">
+                </div>
+                <button onclick="generateDocument()" class="fade-in delay-4">Сформировать документ</button>
+                <div id="document-result" style="margin-top: 2rem; display: none;">
+                    <h3>Сформированный документ:</h3>
+                    <div id="document-content" style="background: white; padding: 1.5rem; border-radius: 8px; margin-top: 1rem;"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <footer>
+        <p id="footer-text">Нотариальная контора "Правовой гарант" &copy; 2023</p>
+        <p id="footer-address">г. Москва, ул. Нотариальная, 10 | Телефон: +7 (495) 000-00-00</p>
+        <button style="margin-top: 1.5rem; background: linear-gradient(135deg, #34495e, #2c3e50);">Связаться с нами</button>
+    </footer>
+
+    <script>
+        // Создание анимированных частиц
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const size = Math.random() * 20 + 5;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const delay = Math.random() * 20;
+                const duration = Math.random() * 10 + 20;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                const colors = [
+                    'rgba(26, 188, 156, 0.1)',
+                    'rgba(52, 152, 219, 0.1)',
+                    'rgba(155, 89, 182, 0.1)',
+                    'rgba(231, 76, 60, 0.1)'
+                ];
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Данные для перевода
+        const translations = {
+            ru: {
+                mainTitle: 'Нотариальная контора "Правовой гарант"',
+                mainSubtitle: 'База данных клиентов, услуг и сделок',
+                langBtn: 'English',
+                navMain: 'Главная',
+                navClients: 'Клиенты',
+                navServices: 'Услуги',
+                navDeals: 'Сделки',
+                navRequest: 'Оформить обращение',
+                navDocument: 'Получить документ',
+                aboutTitle: 'О нотариальной конторе',
+                aboutText: 'Наша нотариальная контора предоставляет полный спектр нотариальных услуг для физических и юридических лиц. Мы гарантируем профессиональное выполнение всех нотариальных действий в соответствии с законодательством Российской Федерации.',
+                clientsTitle: 'Клиенты',
+                clientCode: 'Код клиента',
+                clientName: 'Название организации',
+                clientActivity: 'Вид деятельности',
+                clientAddress: 'Адрес',
+                clientPhone: 'Телефон',
+                servicesTitle: 'Услуги',
+                serviceCode: 'Код услуги',
+                serviceName: 'Название',
+                serviceDescription: 'Описание',
+                dealsTitle: 'Сделки',
+                dealCode: 'Код сделки',
+                dealClientCode: 'Код клиента',
+                dealServiceCode: 'Код услуги',
+                dealAmount: 'Сумма (руб.)',
+                dealCommission: 'Комиссия (руб.)',
+                dealDescription: 'Описание',
+                requestTitle: 'Оформление обращения в нотариальную контору',
+                documentTitle: 'Получение документов и справок',
+                footerText: 'Нотариальная контора "Правовой гарант" &copy; 2023',
+                footerAddress: 'г. Москва, ул. Нотариальная, 10 | Телефон: +7 (495) 000-00-00'
+            },
+            en: {
+                mainTitle: 'Notary Office "Legal Guarantee"',
+                mainSubtitle: 'Database of clients, services and deals',
+                langBtn: 'Русский',
+                navMain: 'Main',
+                navClients: 'Clients',
+                navServices: 'Services',
+                navDeals: 'Deals',
+                navRequest: 'Submit Request',
+                navDocument: 'Get Document',
+                aboutTitle: 'About the notary office',
+                aboutText: 'Our notary office provides a full range of notary services for individuals and legal entities. We guarantee professional performance of all notarial acts in accordance with the legislation of the Russian Federation.',
+                clientsTitle: 'Clients',
+                clientCode: 'Client Code',
+                clientName: 'Organization Name',
+                clientActivity: 'Type of Activity',
+                clientAddress: 'Address',
+                clientPhone: 'Phone',
+                servicesTitle: 'Services',
+                serviceCode: 'Service Code',
+                serviceName: 'Name',
+                serviceDescription: 'Description',
+                dealsTitle: 'Deals',
+                dealCode: 'Deal Code',
+                dealClientCode: 'Client Code',
+                dealServiceCode: 'Service Code',
+                dealAmount: 'Amount (RUB)',
+                dealCommission: 'Commission (RUB)',
+                dealDescription: 'Description',
+                requestTitle: 'Submit a request to the notary office',
+                documentTitle: 'Get documents and certificates',
+                footerText: 'Notary Office "Legal Guarantee" &copy; 2023',
+                footerAddress: 'Moscow, Notarialnaya st., 10 | Phone: +7 (495) 000-00-00'
+            }
+        };
+
+        // Данные о клиентах
+        let clientsData = [
+            { id: '001', name: 'ООО "СтройИнвест"', activity: 'Строительство', address: 'ул. Строителей, 15', phone: '+7 (495) 123-45-67' },
+            { id: '002', name: 'ИП Петров А.В.', activity: 'Розничная торговля', address: 'пр. Мира, 28', phone: '+7 (495) 234-56-78' },
+            { id: '003', name: 'ЗАО "ТехноПром"', activity: 'Производство оборудования', address: 'ул. Промышленная, 5', phone: '+7 (495) 345-67-89' },
+            { id: '004', name: 'ООО "ЮрКонсалт"', activity: 'Юридические услуги', address: 'ул. Юридическая, 12', phone: '+7 (495) 456-78-90' },
+            { id: '005', name: 'ИП Сидорова Е.К.', activity: 'Консалтинг', address: 'ул. Консультативная, 7', phone: '+7 (495) 567-89-01' }
+        ];
+
+        // Данные об услугах
+        let servicesData = [
+            { id: '001', name: 'Удостоверение договоров купли-продажи', description: 'Нотариальное удостоверение сделок с недвижимостью, транспортными средствами и другим имуществом', price: '5,000' },
+            { id: '002', name: 'Свидетельствование верности копий', description: 'Заверение копий документов и выписок из них', price: '500' },
+            { id: '003', name: 'Составление завещаний', description: 'Оформление распоряжений на случай смерти', price: '2,500' },
+            { id: '004', name: 'Удостоверение доверенностей', description: 'Оформление документов, предоставляющих право действовать от имени доверителя', price: '1,500' },
+            { id: '005', name: 'Нотариальное депозитное хранение', description: 'Принятие на хранение денежных сумм и ценных бумаг', price: '3,000' }
+        ];
+
+        // Данные о сделках
+        let dealsData = [
+            { id: '001', clientId: '001', serviceId: '001', amount: '500,000', commission: '25,000', description: 'Удостоверение договора купли-продажи офиса', date: '15.10.2023' },
+            { id: '002', clientId: '002', serviceId: '002', amount: '2,500', commission: '125', description: 'Свидетельствование копий учредительных документов', date: '18.10.2023' },
+            { id: '003', clientId: '003', serviceId: '003', amount: '10,000', commission: '500', description: 'Составление завещания на имущество', date: '22.10.2023' },
+            { id: '004', clientId: '004', serviceId: '004', amount: '7,500', commission: '375', description: 'Удостоверение генеральной доверенности', date: '25.10.2023' },
+            { id: '005', clientId: '005', serviceId: '005', amount: '50,000', commission: '2,500', description: 'Депозитное хранение денежных средств', date: '28.10.2023' },
+            { id: '006', clientId: '001', serviceId: '001', amount: '1,200,000', commission: '60,000', description: 'Удостоверение договора купли-продажи квартиры', date: '30.10.2023' },
+            { id: '007', clientId: '002', serviceId: '004', amount: '3,000', commission: '150', description: 'Удостоверение доверенности на получение ТМЦ', date: '02.11.2023' },
+            { id: '008', clientId: '003', serviceId: '002', amount: '5,000', commission: '250', description: 'Свидетельствование копий патентов', date: '05.11.2023' }
+        ];
+
+        let currentLang = 'ru';
+        let currentPage = 'main-page';
+        let isSwitching = false;
+
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            initializeData();
+            applyTranslations();
+            setupEventListeners();
+            setupForm();
+            
+            // Добавляем fade-in классы для элементов на активной странице
+            const activePage = document.querySelector('.active-page');
+            if (activePage) {
+                animatePageElements(activePage);
+            }
+        });
+
+        // Функция инициализации данных
+        function initializeData() {
+            // Обновляем счетчики
+            updateCounters();
+            
+            // Заполняем таблицы
+            fillTable('clients-table-body', clientsData, ['id', 'name', 'activity', 'address', 'phone']);
+            fillTable('services-table-body', servicesData, ['id', 'name', 'description', 'price']);
+            fillTable('deals-table-body', dealsData, ['id', 'clientId', 'serviceId', 'amount', 'commission', 'description', 'date']);
+        }
+
+        function fillTable(tableId, data, fields) {
+            const tableBody = document.getElementById(tableId);
+            tableBody.innerHTML = '';
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                fields.forEach(field => {
+                    const cell = document.createElement('td');
+                    cell.textContent = item[field] || '';
+                    row.appendChild(cell);
+                });
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Функция обновления счетчиков
+        function updateCounters() {
+            document.getElementById('clients-count').textContent = clientsData.length;
+            document.getElementById('services-count').textContent = servicesData.length;
+            document.getElementById('deals-count').textContent = dealsData.length;
+        }
+
+        // Функция добавления нового клиента
+        function addNewClient() {
+            const newId = ('00' + (clientsData.length + 1)).slice(-3);
+            const newClient = {
+                id: newId,
+                name: 'Новый клиент ' + newId,
+                activity: 'Не указано',
+                address: 'Не указано',
+                phone: '+7 (000) 000-00-00'
+            };
+            
+            clientsData.push(newClient);
+            fillTable('clients-table-body', clientsData, ['id', 'name', 'activity', 'address', 'phone']);
+            updateCounters();
+            
+            alert(`Новый клиент добавлен с кодом: ${newId}`);
+        }
+
+        // Функция добавления новой сделки
+        function addNewDeal() {
+            const newId = ('00' + (dealsData.length + 1)).slice(-3);
+            const randomClient = clientsData[Math.floor(Math.random() * clientsData.length)];
+            const randomService = servicesData[Math.floor(Math.random() * servicesData.length)];
+            
+            const newDeal = {
+                id: newId,
+                clientId: randomClient.id,
+                serviceId: randomService.id,
+                amount: (Math.floor(Math.random() * 100) * 10000).toLocaleString(),
+                commission: (Math.floor(Math.random() * 5000)).toLocaleString(),
+                description: 'Новая сделка',
+                date: new Date().toLocaleDateString('ru-RU')
+            };
+            
+            dealsData.push(newDeal);
+            fillTable('deals-table-body', dealsData, ['id', 'clientId', 'serviceId', 'amount', 'commission', 'description', 'date']);
+            updateCounters();
+            
+            alert(`Новая сделка добавлена с кодом: ${newId}`);
+        }
+
+        // Функция переключения языка
+        function toggleLanguage() {
+            currentLang = currentLang === 'ru' ? 'en' : 'ru';
+            applyTranslations();
+            
+            langToggle.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                langToggle.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Функция применения перевода
+        function applyTranslations() {
+            const t = translations[currentLang];
+            
+            const elements = {
+                'main-title': t.mainTitle,
+                'main-subtitle': t.mainSubtitle,
+                'lang-toggle': t.langBtn,
+                'about-title': t.aboutTitle,
+                'about-text': t.aboutText,
+                'clients-title': t.clientsTitle,
+                'client-code': t.clientCode,
+                'client-name': t.clientName,
+                'client-activity': t.clientActivity,
+                'client-address': t.clientAddress,
+                'client-phone': t.clientPhone,
+                'services-title': t.servicesTitle,
+                'service-code': t.serviceCode,
+                'service-name': t.serviceName,
+                'service-description': t.serviceDescription,
+                'deals-title': t.dealsTitle,
+                'deal-code': t.dealCode,
+                'deal-client-code': t.dealClientCode,
+                'deal-service-code': t.dealServiceCode,
+                'deal-amount': t.dealAmount,
+                'deal-commission': t.dealCommission,
+                'deal-description': t.dealDescription,
+                'request-title': t.requestTitle,
+                'document-title': t.documentTitle,
+                'footer-text': t.footerText,
+                'footer-address': t.footerAddress
+            };
+            
+            Object.keys(elements).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.textContent = elements[id];
+            });
+        }
+
+        // Функция переключения страниц с улучшенной анимацией
+        function switchPage(pageId, certificateType = null) {
+            if (pageId === currentPage || isSwitching) return;
+            
+            isSwitching = true;
+            const oldPage = document.getElementById(currentPage);
+            const newPage = document.getElementById(pageId);
+            
+            // Анимация ухода старой страницы
+            oldPage.classList.remove('active-page');
+            oldPage.classList.add('page');
+            
+            // Удаляем fade-in классы со старой страницы
+            removeFadeClasses(oldPage);
+            
+            // После небольшой задержки показываем новую страницу
+            setTimeout(() => {
+                // Убираем класс main-page если был
+                if (currentPage === 'main-page') {
+                    oldPage.classList.remove('main-page');
+                }
+                
+                // Добавляем класс main-page если нужно
+                if (pageId === 'main-page') {
+                    newPage.classList.add('main-page');
+                }
+                
+                // Показываем новую страницу
+                newPage.classList.remove('page');
+                newPage.classList.add('active-page');
+                
+                // Если переходим на страницу документов и указан тип
+                if (pageId === 'document-page' && certificateType) {
+                    document.getElementById('certificate-type').value = certificateType;
+                }
+                
+                // Анимируем элементы на новой странице
+                setTimeout(() => {
+                    animatePageElements(newPage);
+                    currentPage = pageId;
+                    isSwitching = false;
+                }, 50);
+                
+            }, 300); // Задержка между анимациями
+        }
+
+        // Анимация элементов на странице
+        function animatePageElements(page) {
+            const fadeElements = page.querySelectorAll('.fade-in');
+            fadeElements.forEach(el => {
+                el.style.animation = 'none';
+                setTimeout(() => {
+                    el.style.animation = '';
+                }, 10);
+            });
+            
+            // Анимация строк таблицы
+            const tableRows = page.querySelectorAll('tr');
+            tableRows.forEach((row, index) => {
+                row.style.animation = 'none';
+                setTimeout(() => {
+                    row.style.animation = `rowAppear 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards ${index * 0.05}s`;
+                }, 10);
+            });
+            
+            // Анимация элементов формы
+            const formGroups = page.querySelectorAll('.form-group');
+            formGroups.forEach((group, index) => {
+                group.style.animation = 'none';
+                setTimeout(() => {
+                    group.style.animation = `formGroupAppear 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards ${index * 0.1 + 0.1}s`;
+                }, 10);
+            });
+        }
+
+        // Удаление fade классов
+        function removeFadeClasses(page) {
+            const fadeElements = page.querySelectorAll('.fade-in');
+            fadeElements.forEach(el => {
+                el.classList.remove('fade-in', 'delay-1', 'delay-2', 'delay-3', 'delay-4', 'delay-5');
+            });
+        }
+
+        // Настройка формы обращения
+        function setupForm() {
+            const form = document.getElementById('request-form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    clientType: document.getElementById('client-type').value,
+                    fullName: document.getElementById('full-name').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    serviceType: document.getElementById('service-type').value,
+                    description: document.getElementById('request-description').value,
+                    date: document.getElementById('request-date').value
+                };
+                
+                // Здесь можно добавить отправку данных на сервер
+                console.log('Данные обращения:', formData);
+                
+                alert('Обращение успешно отправлено! Мы свяжемся с вами в ближайшее время.');
+                form.reset();
+            });
+        }
+
+        // Генерация документа
+        function generateDocument() {
+            const type = document.getElementById('certificate-type').value;
+            const code = document.getElementById('document-code').value;
+            const resultDiv = document.getElementById('document-result');
+            const contentDiv = document.getElementById('document-content');
+            
+            let documentContent = '';
+            
+            switch(type) {
+                case 'deal':
+                    const deal = dealsData.find(d => d.id === code);
+                    if (deal) {
+                        documentContent = `
+                            <h4>Документ по сделке №${deal.id}</h4>
+                            <p><strong>Код клиента:</strong> ${deal.clientId}</p>
+                            <p><strong>Код услуги:</strong> ${deal.serviceId}</p>
+                            <p><strong>Сумма сделки:</strong> ${deal.amount} руб.</p>
+                            <p><strong>Комиссия:</strong> ${deal.commission} руб.</p>
+                            <p><strong>Описание:</strong> ${deal.description}</p>
+                            <p><strong>Дата:</strong> ${deal.date}</p>
+                            <hr>
+                            <p>Нотариальная контора "Правовой гарант"</p>
+                            <p>${new Date().toLocaleDateString('ru-RU')}</p>
+                        `;
+                    } else {
+                        documentContent = '<p style="color: red;">Сделка с указанным кодом не найдена</p>';
+                    }
+                    break;
+                    
+                case 'client':
+                    const client = clientsData.find(c => c.id === code);
+                    if (client) {
+                        documentContent = `
+                            <h4>Справка о клиенте №${client.id}</h4>
+                            <p><strong>Название:</strong> ${client.name}</p>
+                            <p><strong>Вид деятельности:</strong> ${client.activity}</p>
+                            <p><strong>Адрес:</strong> ${client.address}</p>
+                            <p><strong>Телефон:</strong> ${client.phone}</p>
+                            <hr>
+                            <p>Нотариальная контора "Правовой гарант"</p>
+                            <p>${new Date().toLocaleDateString('ru-RU')}</p>
+                        `;
+                    } else {
+                        documentContent = '<p style="color: red;">Клиент с указанным кодом не найден</p>';
+                    }
+                    break;
+                    
+                case 'services':
+                    documentContent = `
+                        <h4>Перечень нотариальных услуг</h4>
+                        <ul>
+                            ${servicesData.map(service => 
+                                `<li><strong>${service.id} - ${service.name}:</strong> ${service.description} (${service.price} руб.)</li>`
+                            ).join('')}
+                        </ul>
+                        <hr>
+                        <p>Нотариальная контора "Правовой гарант"</p>
+                        <p>${new Date().toLocaleDateString('ru-RU')}</p>
+                    `;
+                    break;
+                    
+                case 'financial':
+                    const totalAmount = dealsData.reduce((sum, deal) => {
+                        return sum + parseInt(deal.amount.replace(/,/g, ''));
+                    }, 0);
+                    
+                    const totalCommission = dealsData.reduce((sum, deal) => {
+                        return sum + parseInt(deal.commission.replace(/,/g, ''));
+                    }, 0);
+                    
+                    documentContent = `
+                        <h4>Финансовая справка</h4>
+                        <p><strong>Общая сумма сделок:</strong> ${totalAmount.toLocaleString()} руб.</p>
+                        <p><strong>Общая комиссия:</strong> ${totalCommission.toLocaleString()} руб.</p>
+                        <p><strong>Количество сделок:</strong> ${dealsData.length}</p>
+                        <p><strong>Количество клиентов:</strong> ${clientsData.length}</p>
+                        <hr>
+                        <p>Нотариальная контора "Правовой гарант"</p>
+                        <p>${new Date().toLocaleDateString('ru-RU')}</p>
+                    `;
+                    break;
+            }
+            
+            contentDiv.innerHTML = documentContent;
+            resultDiv.style.display = 'block';
+            
+            // Анимация появления результата
+            resultDiv.style.opacity = '0';
+            resultDiv.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                resultDiv.style.transition = 'all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                resultDiv.style.opacity = '1';
+                resultDiv.style.transform = 'translateY(0)';
+            }, 10);
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            // Обработка навигации
+            document.querySelectorAll('.nav-item[data-page], .dropdown-item[data-page]').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const pageId = this.getAttribute('data-page');
+                    const certificateType = this.getAttribute('data-certificate');
+                    
+                    // Плавная анимация кнопки
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                    
+                    switchPage(pageId, certificateType);
+                });
+            });
+
+            // Обработка кнопок на главной
+            document.querySelectorAll('.main-page button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.getAttribute('data-page');
+                    if (page) {
+                        switchPage(page);
+                    }
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+
+            // Обработка кнопки переключения языка
+            document.getElementById('lang-toggle').addEventListener('click', toggleLanguage);
+        }
+
+        // Анимация для статистических карточек
+        function animateStats() {
+            const stats = document.querySelectorAll('.stat-card p');
+            stats.forEach(stat => {
+                const target = parseInt(stat.textContent);
+                if (!isNaN(target)) {
+                    let current = 0;
+                    const increment = target / 40;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        stat.textContent = Math.floor(current);
+                    }, 25);
+                }
+            });
+        }
+
+        // Запуск анимации статистики при появлении на экране
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateStats();
+                    observer.unobserve(entry.target);
+                }
+            });
+        });
+
+        const statsSection = document.querySelector('.main-page .section:nth-child(2)');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+    </script>
+</body>
+</html>
